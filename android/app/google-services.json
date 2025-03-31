@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "900629836084",
+    "project_id": "chotu-app-a37c6",
+    "storage_bucket": "chotu-app-a37c6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:900629836084:android:093745162bac0e84e6f561",
+        "android_client_info": {
+          "package_name": "com.chotu.chotu01"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByqKZXq6wVHjhkiewkYgs9gwaxXD-rswY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:900629836084:android:8ba40d697c903f6ce6f561",
+        "android_client_info": {
+          "package_name": "com.nexashopping"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByqKZXq6wVHjhkiewkYgs9gwaxXD-rswY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
