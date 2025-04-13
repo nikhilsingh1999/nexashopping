@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 
@@ -9,7 +9,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => (
     <View className="flex-1 ml-4">
       <Text className="font-medium">{item.name}</Text>
       <Text className="text-gray-500 mb-2">Size: {item.size}</Text>
-      <Text className="font-semibold">${item.price}</Text>
+      <Text className="font-semibold">₹{item.price}</Text>
     </View>
     <View className="items-end justify-between">
       <TouchableOpacity className="p-2" onPress={() => onRemove(item.id)}>
@@ -77,29 +77,31 @@ export default function CartScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <ScrollView>
+    <SafeAreaView className="flex-1 bg-black pt-12">
+    <View className="flex-1 bg-white pt-4">
+      <Text className="text-2xl font-bold text-gray-900 text-center">Cart</Text>
+      <ScrollView className="mt-4">
         {cartItems.map((item) => (
           <CartItem key={item.id} item={item} onUpdateQuantity={updateQuantity} onRemove={removeItem} />
         ))}
       </ScrollView>
 
-      <View className="p-4 border-t border-gray-200">
+      <View className=" p-4 border-t border-gray-200">
         <View className="flex-row justify-between mb-2">
           <Text className="text-gray-500">Sub-total</Text>
-          <Text className="font-medium">${subtotal.toFixed(2)}</Text>
+          <Text className="font-medium">₹{subtotal.toFixed(2)}</Text>
         </View>
         <View className="flex-row justify-between mb-2">
           <Text className="text-gray-500">Delivery Fee</Text>
-          <Text className="font-medium">${deliveryFee.toFixed(2)}</Text>
+          <Text className="font-medium">₹{deliveryFee.toFixed(2)}</Text>
         </View>
         <View className="flex-row justify-between mb-4">
           <Text className="text-gray-500">Discount</Text>
-          <Text className="font-medium text-green-500">-${discount.toFixed(2)}</Text>
+          <Text className="font-medium text-green-500">-₹{discount.toFixed(2)}</Text>
         </View>
         <View className="flex-row justify-between mb-4">
           <Text className="font-semibold">Total</Text>
-          <Text className="font-semibold">${total.toFixed(2)}</Text>
+          <Text className="font-semibold">₹{total.toFixed(2)}</Text>
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate("Checkout")} className="bg-orange-600 p-4 rounded-lg">
@@ -107,6 +109,7 @@ export default function CartScreen() {
         </TouchableOpacity>
       </View>
     </View>
+    </SafeAreaView>
   );
 }
 

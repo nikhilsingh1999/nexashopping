@@ -29,7 +29,8 @@ const TabNavigator = () => {
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: "orange",
         tabBarInactiveTintColor: "black",
-        TransitonPresets: TransitionPresets.ShiftTransition,
+        tabBarShowLabel: false,
+        // TransitonPresets: TransitionPresets.ShiftTransition,
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = getIconName(route.name, focused);
           return <Icon name={iconName} size={size} color={color} />;
@@ -43,12 +44,13 @@ const TabNavigator = () => {
           shadowRadius: 3,
           shadowOffset: { width: 0, height: 3 },
         },
+        // headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={Homestack} />
-      <Tab.Screen name="Cart" component={CartStack} />
+      <Tab.Screen name="Home" component={Homestack}  options={{ headerShown:false  }} />
+      <Tab.Screen name="Cart" component={CartStack} options={{ headerShown:false }} />
       {/* <Tab.Screen name="Saved" component={SavedScreen} /> */}
-      <Tab.Screen name="Account" component={AccountStack} />
+      <Tab.Screen name="Account" component={AccountStack} options={{ headerShown:false }} />
     </Tab.Navigator>
   );
 };

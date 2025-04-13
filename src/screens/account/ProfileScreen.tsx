@@ -2,14 +2,20 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { RootState } from "../../redux/store";
+import { useSelector } from "react-redux";
+
 
 const ProfileScreen = () => {
+  
+  const user = useSelector((state: RootState) => state.auth.user);
   const navigation = useNavigation();
-  const [fullName, setFullName] = useState("Cody Fisher");
-  const [email, setEmail] = useState("cody.fisher45@example.com");
+  const [fullName, setFullName] = useState(user?.name || "Cody Fisher");
+  const [email, setEmail] = useState(user?.email ||"cody.fisher45@example.com");
   const [dob, setDob] = useState("12/07/1990");
   const [gender, setGender] = useState("Male");
-  const [phone, setPhone] = useState("+91 234 453 31 06");
+  const [address, setAddress] = useState("House no 244 , Khargapur , Tikamgarh(M.P)");
+  const [phone, setPhone] = useState(user?.phone || "+91 1234567890");
 
   return (
     <View className="flex-1 bg-white px-6 pt-12">
@@ -21,6 +27,9 @@ const ProfileScreen = () => {
 
         <Text className="text-gray-500 mt-4 mb-1">Email Address</Text>
         <TextInput className="border border-gray-300 p-3 rounded-lg" value={email} keyboardType="email-address" onChangeText={setEmail} />
+
+        <Text className="text-gray-500 mt-4 mb-1">City</Text>
+        <TextInput className="border border-gray-300 p-3 rounded-lg" value={address} onChangeText={setAddress} />
 
         <Text className="text-gray-500 mt-4 mb-1">Date of Birth</Text>
         <TouchableOpacity className="border border-gray-300 p-3 rounded-lg flex-row justify-between">

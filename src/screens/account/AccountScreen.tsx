@@ -1,23 +1,42 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView , SafeAreaView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { handleGlobalLogout } from "../../services/AuthService";
+import CustomModal from "../../components/CustomModal"; // Adjust the path as needed
 
 const AccountScreen = () => {
   const navigation = useNavigation();
+  const [isModalVisible, setModalVisible] = useState(false);
 
   const menuItems = [
     { icon: "person", label: "Your Profile", screen: "Profile" },
     { icon: "shopping-bag", label: "My Order", screen: "Order" },
     { icon: "payment", label: "Payment Methods", screen: "PaymentMethods" },
-    { icon: "notifications", label: "Notifications", screen: "Notifications" },
-    { icon: "policy", label: "Privacy Policy", screen: "PrivacyPolicy" },
-    { icon: "help", label: "Help Center", screen: "HelpCenter" },
+    { icon: "wallet", label: "Wallet", screen: "Wallet" },
+    { icon: "policy", label: "Privacy Policy", screen: "privacy" },
+    { icon: "gavel", label: "Terms & condition ", screen: "terms" },
+    { icon: "restore", label: "Return & refund policy", screen: "return" },
     { icon: "group-add", label: "Invite Friends", screen: "InviteFriends" },
   ];
 
+  const handleLogoutPress = () => {
+    setModalVisible(true);
+  };
+
+  const confirmLogout = () => {
+    setModalVisible(false);
+    handleGlobalLogout();
+  };
+
+  const cancelLogout = () => {
+    setModalVisible(false);
+  };
+
   return (
-    <View className="flex-1 bg-white px-6 pt-12">
+    
+  <SafeAreaView className="flex-1  pt-12">
+    <View className="flex-1 bg-white px-6 pt-4">
       <Text className="text-2xl font-bold text-gray-900 text-center">Account</Text>
       <ScrollView className="mt-6">
         {menuItems.map((item, index) => (
@@ -35,11 +54,26 @@ const AccountScreen = () => {
         ))}
       </ScrollView>
 
-      <TouchableOpacity className="mt-6 py-3 flex-row items-center justify-center  " onPress={() => console.log("Logout")}>
+      <TouchableOpacity
+        className="mt-6 py-3 flex-row items-center justify-center"
+        onPress={handleLogoutPress}
+      >
         <MaterialIcons name="power-settings-new" size={24} color="red" />
         <Text className="text-red-500 font-semibold ml-2">Log Out</Text>
       </TouchableOpacity>
+
+      <CustomModal
+        isVisible={isModalVisible}
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+        iconName="power-settings-new"
+        buttonText="Log Out"
+        onCancel={cancelLogout}
+        onClose={cancelLogout} 
+        onConfirm={confirmLogout}
+      />
     </View>
+    </SafeAreaView>
   );
 };
 

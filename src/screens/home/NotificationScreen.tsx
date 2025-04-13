@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, SafeAreaView } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 const notifications = [
@@ -26,15 +26,18 @@ const notifications = [
 export default function NotificationScreen() {
   if (notifications.length === 0) {
     return (
+      <SafeAreaView className=" pt-12">
       <View className="flex-1 items-center justify-center p-4">
         <Icon name="notifications-none" size={48} color="gray" className="mb-4" />
         <Text className="text-xl font-semibold mb-2">You haven't gotten any notifications yet!</Text>
         <Text className="text-gray-500 text-center">We'll alert you when something cool happens...</Text>
       </View>
+      </SafeAreaView>
     );
   }
 
   return (
+    <SafeAreaView className="pt-12">
     <ScrollView className="flex-1 bg-white">
       {notifications.map((notification, index) => (
         <React.Fragment key={notification.id}>
@@ -48,6 +51,7 @@ export default function NotificationScreen() {
         </React.Fragment>
       ))}
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

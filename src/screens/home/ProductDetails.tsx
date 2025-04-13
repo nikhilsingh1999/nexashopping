@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-const SIZES = ["S", "M", "L", "XL", "XXL"];
-const COLORS = ["#FF0000", "#000000", "#0000FF", "#808080", "#FFD700"];
+const SIZES = ["10 Watt", "50 Watt", "100 Watt", "500 watt", "550 watt"];
+const COLORS = ["#FF0000", "#0000FF", "#000000", "#808080", "#FFD700"];
 
 export default function ProductDetails({ route, navigation }: any) {
   const [selectedSize, setSelectedSize] = useState("L");
@@ -13,7 +13,7 @@ export default function ProductDetails({ route, navigation }: any) {
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="relative">
-        <Image source={{ uri: product.image }} className="w-full h-96" resizeMode="cover" />
+        <Image source={{ uri: product.image }} className="w-full h-96" resizeMode="contain" />
         <TouchableOpacity className="absolute top-4 right-4 p-2 bg-white rounded-full">
           <Icon name="favorite-border" size={24} color="gray" />
         </TouchableOpacity>
@@ -22,14 +22,14 @@ export default function ProductDetails({ route, navigation }: any) {
       <View className="p-4">
         <Text className="text-2xl font-semibold mb-2">{product.name}</Text>
         <View className="flex-row items-center mb-4">
-          <Text className="text-2xl font-bold">${product.price}</Text>
+          <Text className="text-2xl font-bold">₹{product.price}</Text>
           {product.originalPrice && (
             <Text className="ml-2 text-gray-500 line-through">${product.originalPrice}</Text>
           )}
         </View>
 
         <View className="mb-6">
-          <Text className="font-semibold mb-2">Select Size</Text>
+          <Text className="font-semibold mb-2">Select Option</Text>
           <View className="flex-row flex-wrap gap-2">
             {SIZES.map((size) => (
               <TouchableOpacity
