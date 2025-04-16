@@ -169,17 +169,37 @@ const Loginwithotp = ({ navigation }: any) => {
         <View className="items-center justify-center my-8">
           <View className="bg-gray-800/50 w-64 h-64 rounded-full items-center justify-center mb-6">
             <View className="relative">
-              <View className="absolute -left-20 -top-10">
-                <MaterialIcons name="message" size={48} color="#f97316" />
-              </View>
+              {/* Shopping cart as central element */}
               <View className="bg-orange-500/20 rounded-full p-6">
-                <MaterialIcons name="smartphone" size={80} color="#f97316" />
+                <MaterialIcons name="shopping-cart" size={80} color="#f97316" />
               </View>
-              <View className="absolute -right-16 top-10">
-                <MaterialIcons name="security" size={40} color="#f97316" />
+
+              {/* Product box */}
+              <View className="absolute -left-20 -top-10">
+                <View className="bg-gray-800 rounded-lg p-2">
+                  <MaterialIcons name="inventory" size={36} color="#f97316" />
+                </View>
               </View>
-              <View className="absolute -bottom-12 left-4">
-                <MaterialIcons name="lock" size={36} color="#f97316" />
+
+              {/* Price tag */}
+              <View className="absolute -right-16 -top-5">
+                <View className="bg-gray-800 rounded-lg p-2">
+                  <MaterialIcons name="local-offer" size={32} color="#f97316" />
+                </View>
+              </View>
+
+              {/* Delivery truck */}
+              <View className="absolute -bottom-12 -left-6">
+                <View className="bg-gray-800 rounded-lg p-2">
+                  <MaterialIcons name="local-shipping" size={30} color="#f97316" />
+                </View>
+              </View>
+
+              {/* Store */}
+              <View className="absolute -bottom-6 -right-6">
+                <View className="bg-gray-800 rounded-lg p-2">
+                  <MaterialIcons name="storefront" size={28} color="#f97316" />
+                </View>
               </View>
             </View>
           </View>

@@ -245,26 +245,28 @@ const OTPVerification = () => {
           refreshToken: refreshToken,});
 
       } else {
-        const response1 = await fetch("https://nexa-shopping-user-service.onrender.com/api/v1/user/store-user", {
+        const response1 = await fetch("https://nexa-shopping-user-service.onrender.com/api/v1/user/auth/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
              "authorization": `Bearer ${idToken}`,
           },
           body: JSON.stringify({ }),
+          credentials: 'include',
         });
+        console.log('resss',response1.headers.get('set-cookie'))
+        console.log('Response1:', response1.headers);
         console.log('Response1:', response1);
         const data1 = await response1.json();
         console.log('Data1:', data1);
         if (data1.success == true) {
+
           const res = dispatch(login({
             user: data1.user,
-            idToken: idToken,
             refreshToken: refreshToken,
           }));
-          console.log('Res:', res);
+          console.log('Response : ', res);
           handleSuccess()
-          
           return;
         }
       }

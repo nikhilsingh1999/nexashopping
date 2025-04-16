@@ -9,6 +9,8 @@ import { useSelector } from "react-redux";
 const ProfileScreen = () => {
   
   const user = useSelector((state: RootState) => state.auth.user);
+  console.log("User data:", user);
+  
   const navigation = useNavigation();
   const [fullName, setFullName] = useState(user?.name || "Cody Fisher");
   const [email, setEmail] = useState(user?.email ||"cody.fisher45@example.com");

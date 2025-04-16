@@ -31,6 +31,7 @@ const FillProfile = () => {
           "authorization": `Bearer ${idToken}`,
         },
         body: JSON.stringify({ name, email }),
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -38,16 +39,14 @@ const FillProfile = () => {
       if (data.success) {
         const res = dispatch(login({
           user: data.user,
-          idToken: idToken,
           refreshToken: refreshToken,
-
         }));
         console.log('Res:', res);
         setSuccessModalVisible(true);
-
-      } else {
-        Alert.alert("Error", data.message || "Submission failed");
-      }
+      } 
+      else {
+      Alert.alert("Error", data.message || "Submission failed");
+            }
     } catch (err) {
       console.error("Profile update error:", err);
       Alert.alert("Error", "Something went wrong");

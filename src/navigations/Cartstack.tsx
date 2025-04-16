@@ -13,9 +13,9 @@ const CartStack = () => {
       screenOptions={{
         headerShown: false,
       }}
-      initialRouteName='Cart'
+      initialRouteName='CartScreen'
     >
-      <Stack.Screen name="Cart" component={CartScreen} />
+      <Stack.Screen name="CartScreen" component={CartScreen} />
       <Stack.Screen name="Address" component={AddressSelection} />
       <Stack.Screen name="NewAddress" component={NewAddress} />
       

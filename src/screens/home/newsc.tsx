@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  TextInput,
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  TouchableOpacity, 
+  Image, 
+  TextInput, 
   SafeAreaView,
   Dimensions,
   Animated,
@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../redux/store";
+import { useDispatch , useSelector } from "react-redux";
+import { AppDispatch , RootState } from "../../redux/store";
 import { fetchProducts } from "../../redux/slices/productSlice";
 
 
@@ -79,30 +79,31 @@ export default function HomeScreen() {
   const scrollY = new Animated.Value(0);
   const flatListRef = useRef(null);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-
+  
   // Animation values
   const [fadeAnim] = useState(new Animated.Value(0));
 
-
+  
   const dispatch = useDispatch<AppDispatch>();
   const products = useSelector((state: RootState) => state.products.items);
   const { loading, error } = useSelector((state: RootState) => state.products);
 
-
+  
   // Deal countdown timer
   const [timeLeft, setTimeLeft] = useState({
     hours: 5,
     minutes: 23,
     seconds: 45
   });
-
+  
   // Auto scroll banner carousel
   useEffect(() => {
 
     const info = dispatch(fetchProducts());
     console.log("Products fetched: ", info);
     console.log("products: ", products);
-
+    console.log("products: ", products);
+    
 
   }, [dispatch]);
 
@@ -122,10 +123,10 @@ export default function HomeScreen() {
         });
       }
     }, 3000);
-
+    
     return () => clearInterval(bannerInterval);
   }, [currentBannerIndex]);
-
+  
   // Countdown timer effect
   useEffect(() => {
     const timer = setInterval(() => {
@@ -140,10 +141,10 @@ export default function HomeScreen() {
         return prev;
       });
     }, 1000);
-
+    
     return () => clearInterval(timer);
   }, []);
-
+  
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -155,7 +156,7 @@ export default function HomeScreen() {
   const handleSearch = (text) => {
     setSearchText(text);
   };
-
+  
   const onSearchSubmit = () => {
     if (searchText.trim().length > 0) {
       navigation.navigate("SearchResultsScreen", { query: searchText });
@@ -163,19 +164,11 @@ export default function HomeScreen() {
   };
 
   // Featured product - first product marked as featured
-  const featuredProduct = products.length > 0
-    ? products[Math.floor(Math.random() * products.length)]
-    : null;
-
-  console.log("Featured Product: ", featuredProduct);
-
+  const featuredProduct = products.find(product => product.isFeatured);
+  
   // New arrivals
-  const newArrivals = products.length > 0
-    ? [products[Math.floor(Math.random() * products.length)]]
-    : [];
-
-  console.log("New Arrivals: ", newArrivals);
-
+  const newArrivals = products.filter(product => product.isNew);
+  
   // Calculate discount percentage
   const getDiscountPercentage = (original, current) => {
     return Math.round(((original - current) / original) * 100);
@@ -188,15 +181,15 @@ export default function HomeScreen() {
 
   // Banner carousel item
   const renderBannerItem = ({ item, index }) => (
-    <TouchableOpacity
+    <TouchableOpacity 
       className="relative"
-    // onPress={() => navigation.navigate("PromotionDetails", { promotion: item })}
+      // onPress={() => navigation.navigate("PromotionDetails", { promotion: item })}
     >
-      <Image
-        source={{ uri: item.image }}
+      <Image 
+        source={{ uri: item.image }} 
         style={{ width: BANNER_WIDTH, height: 180 }}
         className="rounded-xl"
-        resizeMode="contain"
+        resizeMode="contain" 
       />
       <View className="absolute bottom-0 left-0 right-0 p-4 bg-black/30 rounded-b-xl">
         <Text className="text-white font-bold text-lg">{item.title}</Text>
@@ -210,10 +203,11 @@ export default function HomeScreen() {
     return (
       <View className="flex-row justify-center items-center mt-2">
         {banners.map((_, index) => (
-          <View
-            key={index}
-            className={`h-2 w-2 rounded-full mx-1 ${currentBannerIndex === index ? 'bg-amber-500 w-4' : 'bg-gray-300'
-              }`}
+          <View 
+            key={index} 
+            className={`h-2 w-2 rounded-full mx-1 ${
+              currentBannerIndex === index ? 'bg-amber-500 w-4' : 'bg-gray-300'
+            }`} 
           />
         ))}
       </View>
@@ -235,79 +229,74 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
+  const ProductCard = ({ product, index }) => {
+    const isEven = index % 2 === 0;
+    const animationDelay = 100 * (index + 1);
+    
+    
+  // Get the first image URL or use a placeholder
+  const imageUrl = product.image || product.imageUrls?.[0] || "https://via.placeholder.com/300";
 
-  const ProductCard = ({ product, index, navigation }) => {
     const [cardAnim] = useState(new Animated.Value(0));
-
+    
     useEffect(() => {
       Animated.timing(cardAnim, {
         toValue: 1,
-        duration: 500,
-        delay: 100 * index, // smoother delay
+        duration: 400,
+        delay: 150 * index,
         useNativeDriver: true,
       }).start();
     }, []);
-
-    const imageUrl = product.imageUrls?.[0] || "https://via.placeholder.com/300";
-
+    
     return (
-      <Animated.View
+      <Animated.View 
         style={{
           opacity: cardAnim,
-          transform: [
-            {
-              scale: cardAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.95, 1],
-              }),
-            },
-          ],
+          transform: [{ translateY: cardAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.9, 1]
+          })}]
         }}
       >
         <TouchableOpacity
-          style={{ width: CARD_WIDTH, marginBottom: 16, marginRight: index % 2 === 0 ? 12 : 0 }}
+          className={`mb-4 ${isEven ? 'mr-4' : ''}`}
+          style={{ width: CARD_WIDTH }}
           onPress={() => navigation.navigate("ProductDetails", { product })}
         >
           <View className="relative">
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-48 rounded-2xl"
-              resizeMode="cover"
+            <Image 
+              source={{ uri: product.imageUrl }} 
+              className="w-full h-48 rounded-2xl" 
+              resizeMode="cover" 
             />
             <View className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full">
               <Text className="text-xs font-bold text-amber-500">
                 {getDiscountPercentage(product.originalPrice, product.price)}% OFF
               </Text>
             </View>
-
+            
             {product.isNew && (
               <View className="absolute top-2 left-2 bg-green-500 px-2 py-1 rounded-full">
                 <Text className="text-xs font-bold text-white">NEW</Text>
               </View>
             )}
-
+            
             {product.stock < 20 && (
               <View className="absolute bottom-2 left-2 bg-red-500 px-2 py-1 rounded-full">
                 <Text className="text-xs font-bold text-white">LOW STOCK</Text>
               </View>
             )}
           </View>
-
+          
           <View className="mt-2 px-1">
-            <Text className="font-medium text-base" numberOfLines={1}>
-              {product.name}
-            </Text>
-            <Text className="text-gray-500 text-xs" numberOfLines={1}>
-              {product.description}
-            </Text>
-
+            <Text className="font-medium text-base" numberOfLines={1}>{product.name}</Text>
+            <Text className="text-gray-500 text-xs" numberOfLines={1}>{product.description}</Text>
+            
             <View className="flex-row items-center mt-1">
               <Text className="font-bold text-base">₹{product.price}</Text>
-              <Text className="ml-2 text-gray-400 line-through text-xs">
-                ₹{product.originalPrice}
-              </Text>
+              <Text className="ml-2 text-gray-400 line-through text-xs">₹{product.originalPrice}</Text>
             </View>
-
+            
             <View className="flex-row items-center justify-between mt-1">
               <View className="flex-row bg-amber-50 px-2 py-1 rounded-full items-center">
                 <Icon name="star" size={12} color="#F59E0B" />
@@ -321,30 +310,56 @@ export default function HomeScreen() {
     );
   };
 
+  // const FeaturedProductS1ection = () => (
+  //   <TouchableOpacity 
+  //     className="mx-4 mb-6 bg-gradient-to-r from-amber-50 to-amber-100 rounded-2xl overflow-hidden"
+  //     onPress={() => navigation.navigate("ProductDetails", { product: featuredProduct })}
+  //   >
+  //     <View className="flex-row">
+  //       <Image 
+  //         // source={{ uri: featuredProduct.imageUrls }} 
+  //         className="w-1/2 h-32" 
+  //         resizeMode="cover" 
+  //       />
+  //       <View className="p-4 flex-1 justify-center">
+  //         <View className="bg-amber-500 self-start px-2 py-1 rounded-full mb-2">
+  //           <Text className="text-white text-xs font-bold">FEATURED</Text>
+  //         </View>
+  //         <Text className="font-bold text-base">{featuredProduct.name}</Text>
+  //         <Text className="text-gray-500 text-xs mb-1">{featuredProduct.description}</Text>
+  //         <View className="flex-row items-center">
+  //           <Text className="font-bold text-base">₹{featuredProduct.price}</Text>
+  //           <Text className="ml-2 text-gray-400 line-through text-xs">₹{featuredProduct.originalPrice}</Text>
+  //         </View>
+  //       </View>
+  //     </View>
+  //   </TouchableOpacity>
+  // );
+
   const ReviewCard = ({ review }) => (
     <View className="bg-white mr-4 p-4 rounded-xl shadow-sm border border-gray-100" style={{ width: width * 0.75 }}>
       <View className="flex-row items-center mb-3">
-        <Image
-          source={{ uri: review.avatar }}
-          className="w-10 h-10 rounded-full"
+        <Image 
+          source={{ uri: review.avatar }} 
+          className="w-10 h-10 rounded-full" 
         />
         <View className="ml-2">
           <Text className="font-medium">{review.name}</Text>
           <Text className="text-gray-500 text-xs">{review.date}</Text>
         </View>
       </View>
-
+      
       <View className="flex-row mb-2">
         {[...Array(5)].map((_, i) => (
-          <Icon
-            key={i}
-            name="star"
-            size={14}
-            color={i < review.rating ? "#F59E0B" : "#E5E7EB"}
+          <Icon 
+            key={i} 
+            name="star" 
+            size={14} 
+            color={i < review.rating ? "#F59E0B" : "#E5E7EB"} 
           />
         ))}
       </View>
-
+      
       <Text className="text-gray-700 text-sm">{review.comment}</Text>
     </View>
   );
@@ -357,7 +372,7 @@ export default function HomeScreen() {
           <Text className="text-white text-xs font-bold">ENDS IN</Text>
         </View>
       </View>
-
+      
       <View className="flex-row justify-center mb-3">
         <View className="bg-white/20 px-3 py-2 rounded-lg mx-1">
           <Text className="text-white font-bold text-xl">{String(timeLeft.hours).padStart(2, '0')}</Text>
@@ -374,10 +389,10 @@ export default function HomeScreen() {
           <Text className="text-white/70 text-xs text-center">Secs</Text>
         </View>
       </View>
-
-      <TouchableOpacity
+      
+      <TouchableOpacity 
         className="bg-white py-3 rounded-xl flex-row justify-center items-center"
-      // onPress={() => navigation.navigate("DealOfTheDay")}
+        // onPress={() => navigation.navigate("DealOfTheDay")}
       >
         <Text className="font-bold text-indigo-600 mr-2">Shop Now</Text>
         <Icon name="arrow-forward" size={16} color="#4F46E5" />
@@ -408,7 +423,7 @@ export default function HomeScreen() {
     <View className="mx-4 mb-6 bg-gray-50 p-4 rounded-2xl">
       <Text className="font-bold text-lg mb-2">Stay Updated</Text>
       <Text className="text-gray-500 text-sm mb-3">Subscribe to our newsletter for exclusive deals and updates</Text>
-
+      
       <View className="flex-row">
         <TextInput
           placeholder="Enter your email"
@@ -424,7 +439,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white pt-12">
-      <Animated.ScrollView
+      <Animated.ScrollView 
         className="flex-1"
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -436,13 +451,13 @@ export default function HomeScreen() {
         {/* Header with logo and icons */}
         <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
           <View className="flex-row items-center">
-            <Image
-              source={require("../../../src/assets/logopng22.png")}
-              className="w-28 h-10"
-              resizeMode="contain"
+            <Image 
+              source={require("../../../src/assets/logopng22.png")} 
+              className="w-28 h-10" 
+              resizeMode="contain" 
             />
           </View>
-
+          
           <View className="flex-row">
             {/* <TouchableOpacity className="mr-4" onPress={() => navigation.navigate("Wishlist")}>
               <View className="relative">
@@ -452,7 +467,7 @@ export default function HomeScreen() {
                 </View>
               </View>
             </TouchableOpacity> */}
-
+            
             <TouchableOpacity className="mr-4" onPress={() => navigation.navigate("Cart")}>
               <View className="relative">
                 <Icon name="shopping-cart" size={24} color="#333" />
@@ -461,7 +476,7 @@ export default function HomeScreen() {
                 </View>
               </View>
             </TouchableOpacity>
-
+            
             <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
               <View className="relative">
                 <Icon name="notifications" size={24} color="#333" />
@@ -475,7 +490,7 @@ export default function HomeScreen() {
 
         {/* Welcome message */}
         <View className="px-4 mb-4">
-          {/* <Text className="text-gray-500">Hello there 👋</Text> */}
+          <Text className="text-gray-500">Hello there 👋</Text>
           <Text className="text-2xl font-bold">Find your perfect light</Text>
         </View>
 
@@ -512,7 +527,7 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               onMomentumScrollEnd={(event) => {
                 const slideIndex = Math.floor(
-                  event.nativeEvent.contentOffset.x /
+                  event.nativeEvent.contentOffset.x / 
                   event.nativeEvent.layoutMeasurement.width
                 );
                 setCurrentBannerIndex(slideIndex);
@@ -533,15 +548,15 @@ export default function HomeScreen() {
               <Text className="text-amber-500 font-medium">View All</Text>
             </TouchableOpacity>
           </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
             className="pl-4"
             contentContainerStyle={{ paddingRight: 20 }}
           >
             {categories.map((category) => (
-              <CategoryItem
+              <CategoryItem 
                 key={category.id}
                 category={category}
                 isActive={activeCategory === category.id}
@@ -559,36 +574,8 @@ export default function HomeScreen() {
           <View className="px-4 flex-row justify-between items-center mb-4">
             <Text className="font-bold text-lg">Featured Product</Text>
           </View>
-
-          {featuredProduct ? (
-            <TouchableOpacity
-              className="mx-4 mb-6 bg-gradient-to-r from-amber-50 to-amber-100 rounded-2xl overflow-hidden"
-              onPress={() => navigation.navigate("ProductDetails", { product: featuredProduct })}
-            >
-              <View className="flex-row">
-                <Image
-                  source={{ uri: featuredProduct.imageUrls?.[0] || "https://via.placeholder.com/150" }}
-                  className="w-1/2 h-40"
-                  resizeMode="contain"
-                />
-                <View className="p-4 flex-1 justify-center">
-                  <View className="bg-amber-500 self-start px-2 py-1 rounded-full mb-2">
-                    <Text className="text-white text-xs font-bold">FEATURED</Text>
-                  </View>
-                  <Text className="font-bold text-base">{featuredProduct.name}</Text>
-                  <Text className="text-gray-500 text-xs mb-1">{featuredProduct.shortDescription}</Text>
-                  <View className="flex-row items-center">
-                    <Text className="font-bold text-base">₹{featuredProduct.price}</Text>
-                    <Text className="ml-2 text-gray-400 line-through text-xs">₹{featuredProduct.originalPrice}</Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <Text className="text-gray-400 text-center mb-4">Loading featured product...</Text>
-          )}
+          {/* <FeaturedProductS1ection /> */}
         </View>
-
 
         {/* New Arrivals */}
         <View className="mb-6">
@@ -598,10 +585,10 @@ export default function HomeScreen() {
               <Text className="text-amber-500 font-medium">View All</Text>
             </TouchableOpacity>
           </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
             className="pl-4"
             contentContainerStyle={{ paddingRight: 20 }}
           >
@@ -611,16 +598,16 @@ export default function HomeScreen() {
                   onPress={() => navigation.navigate("ProductDetails", { product })}
                   className="relative"
                 >
-                  <Image
-                    source={{ uri: product.imageUrls?.[0] || "https://via.placeholder.com/300" }}
-                    className="w-full h-48 rounded-2xl"
-                    resizeMode="cover"
+                  <Image 
+                    source={{ uri: product.image }} 
+                    className="w-full h-48 rounded-2xl" 
+                    resizeMode="cover" 
                   />
                   <View className="absolute top-2 right-2 bg-green-500 px-2 py-1 rounded-full">
                     <Text className="text-xs font-bold text-white">NEW</Text>
                   </View>
                 </TouchableOpacity>
-
+                
                 <View className="mt-2">
                   <Text className="font-medium" numberOfLines={1}>{product.name}</Text>
                   <View className="flex-row items-center mt-1">
@@ -641,19 +628,13 @@ export default function HomeScreen() {
               <Text className="text-amber-500 font-medium">View All</Text>
             </TouchableOpacity>
           </View>
-
+          
           <View className="px-4 flex-row flex-wrap justify-between">
-            {products.slice(0, 2).map((product, index) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                index={index}
-                navigation={navigation}
-              />
+            {products.slice(0, 5).map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
             ))}
           </View>
         </View>
-
 
         {/* Customer Reviews */}
         <View className="mb-6">
@@ -663,10 +644,10 @@ export default function HomeScreen() {
               <Text className="text-amber-500 font-medium">View All</Text>
             </TouchableOpacity>
           </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
             className="pl-4"
             contentContainerStyle={{ paddingRight: 20 }}
           >
@@ -687,10 +668,10 @@ export default function HomeScreen() {
               <Text className="text-amber-500 font-medium">Clear</Text>
             </TouchableOpacity>
           </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
             className="pl-4"
             contentContainerStyle={{ paddingRight: 20 }}
           >
@@ -700,13 +681,13 @@ export default function HomeScreen() {
                   onPress={() => navigation.navigate("ProductDetails", { product })}
                   className="relative"
                 >
-                  <Image
-                    source={{ uri: product.imageUrls?.[0] || "https://via.placeholder.com/300" }}
-                    className="w-full h-32 rounded-xl"
-                    resizeMode="cover"
+                  <Image 
+                    source={{ uri: product.image }} 
+                    className="w-full h-32 rounded-xl" 
+                    resizeMode="cover" 
                   />
                 </TouchableOpacity>
-
+                
                 <View className="mt-1">
                   <Text className="font-medium text-xs" numberOfLines={1}>{product.name}</Text>
                   <Text className="text-amber-500 text-xs font-medium">₹{product.price}</Text>
@@ -718,7 +699,7 @@ export default function HomeScreen() {
 
         {/* Final Banner */}
         <View className="px-4 mb-6">
-          <TouchableOpacity
+          <TouchableOpacity 
             className="bg-orange-500 p-4 rounded-2xl"
             onPress={() => navigation.navigate("SpecialOffer")}
           >
@@ -737,11 +718,11 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         </View>
-
+        
         {/* Bottom spacing */}
         <View className="h-20" />
       </Animated.ScrollView>
-
+      
     </SafeAreaView>
   );
 }

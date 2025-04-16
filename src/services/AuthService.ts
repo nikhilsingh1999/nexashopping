@@ -59,6 +59,7 @@ export const isLoggedIn = async () => {
 
 export const handleGlobalLogout = async () => {
   try {
+    
     store.dispatch(logout());
 
     // 2. Reset navigation to login screen

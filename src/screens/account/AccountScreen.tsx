@@ -12,12 +12,12 @@ const AccountScreen = () => {
   const menuItems = [
     { icon: "person", label: "Your Profile", screen: "Profile" },
     { icon: "shopping-bag", label: "My Order", screen: "Order" },
-    { icon: "payment", label: "Payment Methods", screen: "PaymentMethods" },
+    // { icon: "payment", label: "Payment Methods", screen: "PaymentMethods" },
     { icon: "wallet", label: "Wallet", screen: "Wallet" },
     { icon: "policy", label: "Privacy Policy", screen: "privacy" },
     { icon: "gavel", label: "Terms & condition ", screen: "terms" },
     { icon: "restore", label: "Return & refund policy", screen: "return" },
-    { icon: "group-add", label: "Invite Friends", screen: "InviteFriends" },
+    // { icon: "group-add", label: "Invite Friends", screen: "InviteFriends" },
   ];
 
   const handleLogoutPress = () => {

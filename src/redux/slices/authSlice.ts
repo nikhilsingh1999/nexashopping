@@ -22,13 +22,11 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  idToken: string | null;
   refreshToken: string | null;
 }
 
 const initialState: AuthState = {
   user: null,
-  idToken: null,
   refreshToken: null,
 };
 
@@ -36,21 +34,19 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ user: User; idToken: string; refreshToken: string }>) => {
+    login: (state, action: PayloadAction<{ user: User; refreshToken: string }>) => {
       state.user = action.payload.user;
-      state.idToken = action.payload.idToken;
       state.refreshToken = action.payload.refreshToken;
     },
-    setToken: (state, action: PayloadAction<string>) => {
-      state.idToken = action.payload;
+    setUser: (state, action: PayloadAction<{user : User}>) => {
+      state.user = action.payload.user;
     },
     logout: (state) => {
       state.user = null;
-      state.idToken = null;
       state.refreshToken = null;
     },
   },
 });
 
-export const { login, setToken, logout } = authSlice.actions;
+export const { login, setUser, logout } = authSlice.actions;
 export default authSlice.reducer;

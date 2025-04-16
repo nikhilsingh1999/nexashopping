@@ -85,7 +85,7 @@ const WalletScreen = () => {
         <TouchableOpacity className="flex-row items-center px-5 py-3 rounded-full"
           style={{ backgroundColor: '#FF8C00' }}>
           <MaterialIcons name="payment" size={20} color="white" />
-          <Text className="text-white font-bold ml-2">Pay</Text>
+          <Text className="text-white font-bold ml-2">Payback</Text>
         </TouchableOpacity>
       </View>
 
