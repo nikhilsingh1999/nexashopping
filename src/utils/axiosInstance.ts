@@ -16,7 +16,7 @@ axiosInstance.interceptors.response.use(
   
         try {
           // Backend will refresh using cookies
-          await axiosInstance.get('/api/v1/user/auth/refresh');
+          await axiosInstance.get('/api/v1/base/auth/refresh');
   
           // Retry original request
           return axiosInstance(originalRequest);

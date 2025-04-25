@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { resetRootToLogin } from '../navigations/navigationService';
-import { Alert } from 'react-native';
+import { Alert , ToastAndroid , Platform } from 'react-native';
 import { logout } from '../redux/slices/authSlice';
 import store from '../redux/store'; // Adjust the path as needed
 
@@ -71,3 +71,12 @@ export const handleGlobalLogout = async () => {
     Alert.alert('Error', 'Failed to log out. Please try again later.');
   }
 };
+
+
+  export const showMessage = (message : string) => {
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(message, ToastAndroid.CENTER);
+      } else {
+        Alert.alert('not working', message);
+      }
+    };

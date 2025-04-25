@@ -36,10 +36,6 @@ const MainStack = () => {
 
         <Stack.Screen name="MainTab" component={TabNavigator} />
         
-
-        {/* <Stack.Screen name="OTPVerification" component={OTPVerification} /> */}
-        {/* <Stack.Screen name="Signup" component={SignupScreen} /> */}
-        {/* <Stack.Screen name="MainTabs" component={TabNavigator} /> */}
        
       </Stack.Navigator>
   );

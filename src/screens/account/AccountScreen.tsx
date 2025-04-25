@@ -12,7 +12,7 @@ const AccountScreen = () => {
   const menuItems = [
     { icon: "person", label: "Your Profile", screen: "Profile" },
     { icon: "shopping-bag", label: "My Order", screen: "Order" },
-    // { icon: "payment", label: "Payment Methods", screen: "PaymentMethods" },
+    { icon: "pin-drop", label: "Addresses", screen: "address" },
     { icon: "wallet", label: "Wallet", screen: "Wallet" },
     { icon: "policy", label: "Privacy Policy", screen: "privacy" },
     { icon: "gavel", label: "Terms & condition ", screen: "terms" },

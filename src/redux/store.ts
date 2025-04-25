@@ -5,6 +5,9 @@ import { persistReducer, persistStore } from 'redux-persist';
 
 import authReducer from '../redux/slices/authSlice'; 
 import productReducer from '../redux/slices/productSlice'
+import cartReducer from '../redux/slices/cartSlice'
+import addressReducer from '../redux/slices/addressSlice'
+import orderReducer from './slices/orderSlice'
 
 const persistConfig = {
   key: 'root',
@@ -15,6 +18,9 @@ const persistConfig = {
 const rootReducer = combineReducers({
   auth: authReducer, // ✅ key is 'auth'
   products: productReducer, // ✅ key is 'products'
+  cart: cartReducer, // ✅ key is 'cart'
+  address: addressReducer, // ✅ key is 'address'
+  orders: orderReducer, // ✅ key is 'orders'
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

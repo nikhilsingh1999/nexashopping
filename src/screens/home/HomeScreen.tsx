@@ -98,13 +98,14 @@ export default function HomeScreen() {
 
   // Auto scroll banner carousel
   useEffect(() => {
+    if (products.length === 0)
+      {
+      const info = dispatch(fetchProducts());
+      console.log("Products fetched: ", info);
+      console.log("products: ", products);
+      }
 
-    const info = dispatch(fetchProducts());
-    console.log("Products fetched: ", info);
-    console.log("products: ", products);
-
-
-  }, [dispatch]);
+  }, []);
 
 
 
@@ -167,14 +168,14 @@ export default function HomeScreen() {
     ? products[Math.floor(Math.random() * products.length)]
     : null;
 
-  console.log("Featured Product: ", featuredProduct);
+  // console.log("Featured Product: ", featuredProduct);
 
   // New arrivals
   const newArrivals = products.length > 0
     ? [products[Math.floor(Math.random() * products.length)]]
     : [];
 
-  console.log("New Arrivals: ", newArrivals);
+  // console.log("New Arrivals: ", newArrivals);
 
   // Calculate discount percentage
   const getDiscountPercentage = (original, current) => {
