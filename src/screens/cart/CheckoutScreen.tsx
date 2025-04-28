@@ -63,7 +63,7 @@ const CheckoutScreen = () => {
   };
 
   // Handle create order and proceed to payment
-  const handleCreateOrder = async () => {
+  const handleProceedToPayment = () => {
     if (!selectedAddress) {
       Alert.alert("Error", "Please select a delivery address");
       return;
@@ -73,54 +73,28 @@ const CheckoutScreen = () => {
       Alert.alert("Error", "Your cart is empty");
       return;
     }
-  
-    setIsLoading(true);
-    try {
-      // Prepare order data for API
-      const orderData = {
-        total_amount: summary.total,
-        tax_amount: 10, // Calculate tax if needed
-        address_id: selectedAddress,
-        items: formatOrderItems(),
-      };
-      
-      // Dispatch create order action
-      console.log("Creating order with data:", orderData);
-      const resultAction = await dispatch(createOrder(orderData));
-      
-      // Add logs to check the returned data
-      console.log("Order action result:", resultAction);
-      
-      // Check if the action was fulfilled (success)
-      if (createOrder.fulfilled.match(resultAction)) {
-        const orderResponse = resultAction.payload;
-        console.log("Order created successfully:", orderResponse);
-        
-        // Navigate to payment screen with the order details from API
-        navigation.navigate("PaymentScreen", {
-          orderDetails: {
-            orderId: orderResponse.id || orderResponse._id,
-            addressId: selectedAddress,
-            totalAmount: summary.total,
-            subTotal: summary.subtotal,
-            deliveryFee: summary.deliveryFee,
-            discount: summary.discount,
-            items: cartItems,
-            status: orderResponse.status || "PENDING",
-            promoCode: promoCode
-          }
-        });
-      } else {
-        // If the action was rejected
-        console.error("Order creation failed:", resultAction.error);
-        Alert.alert("Error", "Failed to create order. Please try again.");
+    
+    // Instead of creating order, just prepare the data to pass to payment screen
+    const orderData = {
+      total_amount: summary.total,
+      tax_amount: 10, // Calculate tax if needed
+      address_id: selectedAddress,
+      items: formatOrderItems(),
+    };
+    
+    // Navigate to payment screen with the order data (but no order created yet)
+    navigation.navigate("PaymentScreen", {
+      orderData: orderData, // This is the data needed to create the order
+      checkoutSummary: {
+        addressId: selectedAddress,
+        totalAmount: summary.total,
+        subTotal: summary.subtotal,
+        deliveryFee: summary.deliveryFee,
+        discount: summary.discount,
+        items: cartItems,
+        promoCode: promoCode
       }
-    } catch (error) {
-      console.error("Exception when creating order:", error);
-      Alert.alert("Error", "Failed to create order. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
   // Handle promo code application
   const handleApplyPromoCode = () => {
@@ -301,7 +275,7 @@ const CheckoutScreen = () => {
         {/* Confirm Order Button */}
         <TouchableOpacity
           className="mt-6 mb-6 bg-orange-600 py-4 rounded-lg flex-row justify-center items-center"
-          onPress={handleCreateOrder}
+          onPress={handleProceedToPayment}
           disabled={isLoading || !cartItems || cartItems.length === 0 || orderLoading}
         >
           {isLoading || orderLoading ? (
@@ -309,7 +283,7 @@ const CheckoutScreen = () => {
           ) : (
             <>
               <Text className="text-white font-semibold text-lg">
-                Confirm Order
+                Pay & Confirm Order
               </Text>
               <MaterialIcons name="arrow-forward" size={24} color="white" className="ml-1" />
             </>

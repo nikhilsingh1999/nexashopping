@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSelector, useDispatch } from "react-redux";
+import { createOrder } from "../../redux/slices/orderSlice";
 
 const PaymentScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,21 +21,24 @@ const PaymentScreen = () => {
   const [selectedMethod, setSelectedMethod] = useState(null);
   const navigation = useNavigation();
   const route = useRoute();
-  const { orderDetails } = route.params || {};
+  const dispatch = useDispatch();
+  
+  // Get the data passed from checkout screen
+  const { orderData, checkoutSummary } = route.params || {};
+  
+  // Get order state from Redux
+  const { loading: orderLoading, error: orderError } = useSelector(state => state.order || {});
 
   // Fetch payment methods on component mount
   useEffect(() => {
     fetchPaymentMethods();
+    
   }, []);
 
   const fetchPaymentMethods = async () => {
     setIsLoading(true);
     try {
-      // In a real app, replace with your actual API endpoint
-      // const response = await fetch('your-api-endpoint/payment-methods');
-      // const data = await response.json();
-
-      // For demonstration, using the sample response
+      // Mock response as in your original code
       const mockResponse = {
         success: true,
         active_methods: [
@@ -57,7 +62,6 @@ const PaymentScreen = () => {
 
       if (mockResponse.success) {
         setPaymentMethods(mockResponse.active_methods);
-        // Auto-select first payment method if available
         if (mockResponse.active_methods.length > 0) {
           setSelectedMethod(mockResponse.active_methods[0].code);
         }
@@ -72,6 +76,7 @@ const PaymentScreen = () => {
     }
   };
 
+  // Create order and process payment
   const handlePayment = async () => {
     if (!selectedMethod) {
       Alert.alert("Error", "Please select a payment method");
@@ -80,25 +85,39 @@ const PaymentScreen = () => {
 
     setProcessingPayment(true);
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Handle different payment methods
-      switch (selectedMethod) {
-        case "PHONEPE":
-          // In a real app, redirect to PhonePe gateway
-          handlePhonePePayment();
-          break;
-        case "CREDIT":
-          // Process wallet payment
-          handleWalletPayment();
-          break;
-        case "COD":
-          // Process COD order
-          handleCODPayment();
-          break;
-        default:
-          throw new Error("Invalid payment method");
+      // Add payment method to order data
+      const finalOrderData = {
+        ...orderData,
+        payment_method: selectedMethod
+      };
+      
+      // Create the order
+      console.log("Creating order with data:", finalOrderData);
+      const resultAction = await dispatch(createOrder(finalOrderData));
+      
+      if (createOrder.fulfilled.match(resultAction)) {
+        const orderResponse = resultAction.payload;
+        console.log("Order created successfully:", orderResponse);
+        
+        // Handle different payment methods
+        const orderId = orderResponse.id || orderResponse._id;
+        
+        switch (selectedMethod) {
+          case "PHONEPE":
+            handlePhonePePayment(orderId);
+            break;
+          case "CREDIT":
+            handleWalletPayment(orderId);
+            break;
+          case "COD":
+            handleCODPayment(orderId);
+            break;
+          default:
+            throw new Error("Invalid payment method");
+        }
+      } else {
+        console.error("Order creation failed:", resultAction.error);
+        Alert.alert("Error", "Failed to create order. Please try again.");
       }
     } catch (error) {
       console.error("Payment error:", error);
@@ -108,34 +127,49 @@ const PaymentScreen = () => {
     }
   };
 
-  const handlePhonePePayment = () => {
-    // In a real app, this would redirect to the PhonePe payment gateway
-    // For demo purposes, navigate to a success screen
+  const handlePhonePePayment = (orderId) => {
+    // Navigate to confirmation with order details
     navigation.navigate("OrderConfirmation", {
       orderDetails: {
-        ...orderDetails,
+        orderId: orderId,
+        addressId: checkoutSummary.addressId,
+        totalAmount: checkoutSummary.totalAmount,
+        subTotal: checkoutSummary.subTotal,
+        deliveryFee: checkoutSummary.deliveryFee,
+        discount: checkoutSummary.discount,
+        items: checkoutSummary.items,
         paymentMethod: "PhonePe",
         status: "PROCESSING"
       }
     });
   };
 
-  const handleWalletPayment = () => {
-    // Process wallet payment
+  const handleWalletPayment = (orderId) => {
     navigation.navigate("OrderConfirmation", {
       orderDetails: {
-        ...orderDetails,
+        orderId: orderId,
+        addressId: checkoutSummary.addressId,
+        totalAmount: checkoutSummary.totalAmount,
+        subTotal: checkoutSummary.subTotal,
+        deliveryFee: checkoutSummary.deliveryFee,
+        discount: checkoutSummary.discount,
+        items: checkoutSummary.items,
         paymentMethod: "Credit Wallet",
         status: "PAID"
       }
     });
   };
 
-  const handleCODPayment = () => {
-    // Process COD order
+  const handleCODPayment = (orderId) => {
     navigation.navigate("OrderConfirmation", {
       orderDetails: {
-        ...orderDetails,
+        orderId: orderId,
+        addressId: checkoutSummary.addressId,
+        totalAmount: checkoutSummary.totalAmount,
+        subTotal: checkoutSummary.subTotal,
+        deliveryFee: checkoutSummary.deliveryFee,
+        discount: checkoutSummary.discount,
+        items: checkoutSummary.items,
         paymentMethod: "Cash on Delivery",
         status: "CONFIRMED"
       }
@@ -172,24 +206,20 @@ const PaymentScreen = () => {
         <View className="bg-orange-50 p-4 rounded-lg mb-6">
           <Text className="font-semibold text-lg mb-2">Order Summary</Text>
           <View className="flex-row justify-between mb-1">
-            <Text className="text-gray-600">Order ID:</Text>
-            <Text className="font-medium">{orderDetails?.orderId || "N/A"}</Text>
-          </View>
-          <View className="flex-row justify-between mb-1">
             <Text className="text-gray-600">Sub-total:</Text>
-            <Text>₹{orderDetails?.subTotal?.toFixed(2) || "0.00"}</Text>
+            <Text>₹{checkoutSummary?.subTotal?.toFixed(2) || "0.00"}</Text>
           </View>
           <View className="flex-row justify-between mb-1">
             <Text className="text-gray-600">Delivery Fee:</Text>
-            <Text>₹{orderDetails?.deliveryFee?.toFixed(2) || "0.00"}</Text>
+            <Text>₹{checkoutSummary?.deliveryFee?.toFixed(2) || "0.00"}</Text>
           </View>
           <View className="flex-row justify-between mb-1">
             <Text className="text-gray-600">Discount:</Text>
-            <Text className="text-green-600">- ₹{orderDetails?.discount?.toFixed(2) || "0.00"}</Text>
+            <Text className="text-green-600">- ₹{checkoutSummary?.discount?.toFixed(2) || "0.00"}</Text>
           </View>
           <View className="flex-row justify-between mt-2 pt-2 border-t border-gray-300">
             <Text className="font-bold">Total Amount:</Text>
-            <Text className="font-bold text-lg">₹{orderDetails?.totalAmount?.toFixed(2) || "0.00"}</Text>
+            <Text className="font-bold text-lg">₹{checkoutSummary?.totalAmount?.toFixed(2) || "0.00"}</Text>
           </View>
         </View>
 
@@ -261,9 +291,9 @@ const PaymentScreen = () => {
             selectedMethod ? 'bg-orange-600' : 'bg-gray-300'
           }`}
           onPress={handlePayment}
-          disabled={processingPayment || !selectedMethod}
+          disabled={processingPayment || !selectedMethod || orderLoading}
         >
-          {processingPayment ? (
+          {processingPayment || orderLoading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
             <>

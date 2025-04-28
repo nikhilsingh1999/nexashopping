@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef , useMemo } from "react";
 import {
   View,
   Text,
@@ -9,14 +9,16 @@ import {
   SafeAreaView,
   Dimensions,
   Animated,
-  FlatList
+  FlatList,
+  ActivityIndicator,
+  Modal
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
 import { fetchProducts } from "../../redux/slices/productSlice";
-
+import axios from "axios";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.42;
@@ -30,19 +32,19 @@ const banners = [
   { id: 4, image: "https://iili.io/378xbSt.jpg", title: "Special Discount Week" },
 ];
 
-// Updated categories with better icons
-const categories = [
-  { id: 1, name: "Lighting", icon: "lightbulb" },
-  { id: 2, name: "Smart Home", icon: "home" },
-  { id: 3, name: "Electronics", icon: "devices" },
-  { id: 4, name: "Appliances", icon: "kitchen" },
-  { id: 5, name: "Outdoor", icon: "terrain" },
-  { id: 6, name: "Office", icon: "business" },
-  { id: 7, name: "Decor", icon: "format-paint" },
-  { id: 8, name: "Accessories", icon: "extension" },
-];
-
-// Updated products1 with better data
+// Default icon mapping - will use these if we don't have a specific icon for a category
+const defaultIcons = {
+  "Electronics": "devices",
+  "Fashion": "checkroom",
+  "Home & Furniture": "chair",
+  "Grocery & Essentials": "local-grocery-store",
+  "Beauty & Personal Care": "spa",
+  "Sports & Fitness": "fitness-center",
+  "Books & Stationery": "menu-book",
+  "Automobiles & Accessories": "directions-car",
+  // Default fallback
+  "default": "category"
+};
 
 // Customer reviews
 const reviews = [
@@ -59,7 +61,7 @@ const reviews = [
     name: "Michael Chen",
     avatar: "https://iili.io/37eGGup.webp",
     rating: 4,
-    comment: "Great products1 and fast delivery. The motion sensor works perfectly in my hallway.",
+    comment: "Great products and fast delivery. The motion sensor works perfectly in my hallway.",
     date: "1 week ago"
   },
   {
@@ -75,19 +77,26 @@ const reviews = [
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
-  const [activeCategory, setActiveCategory] = useState(1);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("");
   const scrollY = new Animated.Value(0);
   const flatListRef = useRef(null);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   // Animation values
   const [fadeAnim] = useState(new Animated.Value(0));
-
 
   const dispatch = useDispatch<AppDispatch>();
   const products = useSelector((state: RootState) => state.products.items);
   const { loading, error } = useSelector((state: RootState) => state.products);
 
+  const handleNavigateToProduct = (productId) => {
+    navigation.navigate("ProductDetails", { productId });
+  };
 
   // Deal countdown timer
   const [timeLeft, setTimeLeft] = useState({
@@ -96,19 +105,45 @@ export default function HomeScreen() {
     seconds: 45
   });
 
-  // Auto scroll banner carousel
-  useEffect(() => {
-    if (products.length === 0)
-      {
-      const info = dispatch(fetchProducts());
-      console.log("Products fetched: ", info);
-      console.log("products: ", products);
-      }
+  // trim text 
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return "";
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+  };
 
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const response = await axios.get("https://nexa-shopping-user-service.onrender.com/api/v1/base/categories");
+        console.log("API Response for categories:", response.data);
+        if (response.data && response.data.success && response.data.category) {
+          setCategories(response.data.category);
+          // Set the first category as active by default
+          if (response.data.category.length > 0) {
+            setActiveCategory(response.data.category[0]._id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
+  // Fetch products
+  useEffect(() => {
+    if (products.length === 0) {
+      dispatch(fetchProducts());
+    }
+  }, []);
 
-
+  // Auto scroll banner carousel
   useEffect(() => {
     const bannerInterval = setInterval(() => {
       if (currentBannerIndex < banners.length - 1) {
@@ -153,6 +188,42 @@ export default function HomeScreen() {
     }).start();
   }, []);
 
+  // Search functionality
+  // const handleSearch = (text) => {
+  //   setSearchText(text);
+  
+  //   if (!text || text.trim().length <= 1) {
+  //     setSearchResults([]);
+  //     return;
+  //   }
+  
+  //   setIsSearching(true);
+  
+  //   const filteredProducts = products.filter(product =>
+  //     product.name.toLowerCase().includes(text.toLowerCase()) ||
+  //     (product.description && product.description.toLowerCase().includes(text.toLowerCase()))
+  //   );
+  
+  //   setSearchResults(filteredProducts);
+  
+  //   setTimeout(() => {
+  //     setIsSearching(false);
+  //   }, 300);
+  // };
+  
+  
+
+  // const onSearchSubmit = () => {
+  //   if (searchText.trim().length > 0) {
+  //     // Navigate to search results screen with the filtered results
+  //     navigation.navigate("SearchResultsScreen", {
+  //       query: searchText,
+  //       results: searchResults
+  //     });
+  //     setShowSearchModal(false);
+  //   }
+  // };
+
   const handleSearch = (text) => {
     setSearchText(text);
   };
@@ -163,24 +234,45 @@ export default function HomeScreen() {
     }
   };
 
-  // Featured product - first product marked as featured
-  const featuredProduct = products.length > 0
-    ? products[Math.floor(Math.random() * products.length)]
-    : null;
+  // Get icon for category based on name
+  const getCategoryIcon = (categoryName) => {
+    return defaultIcons[categoryName] || defaultIcons.default;
+  };
 
-  // console.log("Featured Product: ", featuredProduct);
+  // Featured product - first product marked as featured
+  const featuredProduct = useMemo(() => {
+    if (products.length > 0) {
+      return products[Math.floor(Math.random() * products.length)];
+    }
+    return null;
+  }, [products]);
+  
 
   // New arrivals
   const newArrivals = products.length > 0
-    ? [products[Math.floor(Math.random() * products.length)]]
+    ? products.slice(0, 5)
     : [];
-
-  // console.log("New Arrivals: ", newArrivals);
 
   // Calculate discount percentage
   const getDiscountPercentage = (original, current) => {
     return Math.round(((original - current) / original) * 100);
   };
+  
+ 
+  
+  // console.log(products)
+  // Hot deals - filter products with at least 15% discount
+  const hotDeals = useMemo(() => {
+    if (products.length > 0) {
+      return products
+        .filter(product => getDiscountPercentage(product?.price, product?.discountPrice) >= 15)
+        .slice(0, 6);
+    }
+    return [];
+  }, [products]);
+  
+
+    console.log("Hot Deals:", hotDeals);
 
   // Format number with commas
   const formatNumber = (num) => {
@@ -189,10 +281,7 @@ export default function HomeScreen() {
 
   // Banner carousel item
   const renderBannerItem = ({ item, index }) => (
-    <TouchableOpacity
-      className="relative"
-    // onPress={() => navigation.navigate("PromotionDetails", { promotion: item })}
-    >
+    <TouchableOpacity className="relative">
       <Image
         source={{ uri: item.image }}
         style={{ width: BANNER_WIDTH, height: 180 }}
@@ -225,102 +314,156 @@ export default function HomeScreen() {
     <TouchableOpacity
       onPress={() => {
         onPress();
-        navigation.navigate("CategoryScreen", { categoryName: category.name });
+        navigation.navigate("CategoryScreen", {
+          categoryId: category._id,
+          categoryName: category.name
+        });
       }}
-      className={`mr-4 items-center ${isActive ? 'opacity-100' : 'opacity-70'}`}
+      className="items-center mb-4 w-1/4"
     >
       <View className={`w-16 h-16 rounded-2xl items-center justify-center mb-2 ${isActive ? 'bg-amber-500' : 'bg-gray-100'}`}>
-        <Icon name={category.icon} size={28} color={isActive ? "#ffffff" : "#666666"} />
+        <Icon name={getCategoryIcon(category.name)} size={28} color={isActive ? "#ffffff" : "#666666"} />
       </View>
-      <Text className={`text-sm ${isActive ? 'font-bold' : 'font-normal'}`}>{category.name}</Text>
+      <Text className={`text-sm text-center ${isActive ? 'font-bold' : 'font-normal'}`} numberOfLines={1}>
+        {category.name}
+      </Text>
     </TouchableOpacity>
   );
 
+  // const ProductCard = ({ product, index, navigation, isHotDeal = false }) => {
+  //   const [cardAnim] = useState(new Animated.Value(0));
 
-  const ProductCard = ({ product, index, navigation }) => {
-    const [cardAnim] = useState(new Animated.Value(0));
+  //   useEffect(() => {
+  //     Animated.timing(cardAnim, {
+  //       toValue: 1,
+  //       duration: 1000,
+  //       delay: 100 * index, // smoother delay
+  //       useNativeDriver: true,
+  //     }).start();
+  //   }, []);
 
-    useEffect(() => {
-      Animated.timing(cardAnim, {
-        toValue: 1,
-        duration: 500,
-        delay: 100 * index, // smoother delay
-        useNativeDriver: true,
-      }).start();
-    }, []);
+  //   const imageUrl = product.imageUrls?.[0] || "https://via.placeholder.com/300";
+  //   const discount = getDiscountPercentage(product.price, product.discountPrice);
 
-    const imageUrl = product.imageUrls?.[0] || "https://via.placeholder.com/300";
+  //   return (
+  //     <Animated.View
+  //       style={{
+  //         opacity: cardAnim,
+  //         transform: [
+  //           {
+  //             scale: cardAnim.interpolate({
+  //               inputRange: [0, 1],
+  //               outputRange: [0.95, 1],
+  //             }),
+  //           },
+  //         ],
+  //       }}
+  //     >
+  //       <TouchableOpacity
+  //         style={{
+  //           width: isHotDeal ? width * 0.9 : CARD_WIDTH,
+  //           marginBottom: 16,
+  //           marginRight: isHotDeal ? 0 : (index % 2 === 0 ? 12 : 0)
+  //         }}
+  //         onPress={() => {
+  //           handleNavigateToProduct(product._id);
+  //         }}
+  //       >
+  //         <View className={`relative ${isHotDeal ? 'flex-row bg-orange-50 p-2 rounded-2xl' : ''}`}>
+  //           <Image
+  //             source={{ uri: imageUrl }}
+  //             className={`${isHotDeal ? 'w-1/3 h-32' : 'w-full h-48'} rounded-2xl`}
+  //             resizeMode="cover"
+  //           />
 
-    return (
-      <Animated.View
-        style={{
-          opacity: cardAnim,
-          transform: [
-            {
-              scale: cardAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.95, 1],
-              }),
-            },
-          ],
-        }}
-      >
-        <TouchableOpacity
-          style={{ width: CARD_WIDTH, marginBottom: 16, marginRight: index % 2 === 0 ? 12 : 0 }}
-          onPress={() => navigation.navigate("ProductDetails", { product })}
-        >
-          <View className="relative">
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-48 rounded-2xl"
-              resizeMode="cover"
-            />
-            <View className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full">
-              <Text className="text-xs font-bold text-amber-500">
-                {getDiscountPercentage(product.originalPrice, product.price)}% OFF
-              </Text>
-            </View>
+  //           {isHotDeal ? (
+  //             <View className="p-3 flex-1">
+  //               <View className="flex-row justify-between items-start">
+  //                 <Text className="font-medium text-base" numberOfLines={2}>
+  //                   {product.name}
+  //                 </Text>
+  //                 <View className="bg-amber-500 px-2 py-1 rounded-full">
+  //                   <Text className="text-xs font-bold text-white">
+  //                     {discount}% OFF
+  //                   </Text>
+  //                 </View>
+  //               </View>
 
-            {product.isNew && (
-              <View className="absolute top-2 left-2 bg-green-500 px-2 py-1 rounded-full">
-                <Text className="text-xs font-bold text-white">NEW</Text>
-              </View>
-            )}
+  //               <Text className="text-gray-500 text-xs mt-1" numberOfLines={2}>
+  //                 {product.description || "High-quality lighting product for your home"}
+  //               </Text>
 
-            {product.stock < 20 && (
-              <View className="absolute bottom-2 left-2 bg-red-500 px-2 py-1 rounded-full">
-                <Text className="text-xs font-bold text-white">LOW STOCK</Text>
-              </View>
-            )}
-          </View>
+  //               <View className="flex-row items-center mt-2">
+  //                 <Text className="font-bold text-base">₹{product.discountPrice}</Text>
+  //                 <Text className="ml-2 text-gray-400 line-through text-xs">
+  //                   ₹{product.price}
+  //                 </Text>
+  //               </View>
 
-          <View className="mt-2 px-1">
-            <Text className="font-medium text-base" numberOfLines={1}>
-              {product.name}
-            </Text>
-            <Text className="text-gray-500 text-xs" numberOfLines={1}>
-              {product.description}
-            </Text>
+  //               <View className="flex-row items-center justify-between mt-2">
+  //                 <View className="flex-row bg-amber-50 px-2 py-1 rounded-full items-center">
+  //                   <Icon name="star" size={12} color="#F59E0B" />
+  //                   <Text className="ml-1 text-xs font-medium">{product.rating || "4.5"}</Text>
+  //                 </View>
 
-            <View className="flex-row items-center mt-1">
-              <Text className="font-bold text-base">₹{product.price}</Text>
-              <Text className="ml-2 text-gray-400 line-through text-xs">
-                ₹{product.originalPrice}
-              </Text>
-            </View>
+  //                 <TouchableOpacity
+  //                   className="bg-amber-500 px-3 py-1 rounded-full"
+  //                   onPress={() => handleNavigateToProduct(product._id)}
+  //                 >
+  //                   <Text className="text-white text-xs font-medium">Buy Now</Text>
+  //                 </TouchableOpacity>
+  //               </View>
+  //             </View>
+  //           ) : (
+  //             <>
+  //               <View className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full">
+  //                 <Text className="text-xs font-bold text-amber-500">
+  //                   {discount}% OFF
+  //                 </Text>
+  //               </View>
 
-            <View className="flex-row items-center justify-between mt-1">
-              <View className="flex-row bg-amber-50 px-2 py-1 rounded-full items-center">
-                <Icon name="star" size={12} color="#F59E0B" />
-                <Text className="ml-1 text-xs font-medium">{product.rating}</Text>
-              </View>
-              <Text className="text-gray-500 text-xs">Stock: {product.stock}</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
+  //               {product.isNew && (
+  //                 <View className="absolute top-2 left-2 bg-green-500 px-2 py-1 rounded-full">
+  //                   <Text className="text-xs font-bold text-white">NEW</Text>
+  //                 </View>
+  //               )}
+
+  //               {product.stock < 20 && (
+  //                 <View className="absolute bottom-2 left-2 bg-red-500 px-2 py-1 rounded-full">
+  //                   <Text className="text-xs font-bold text-white">LOW STOCK</Text>
+  //                 </View>
+  //               )}
+
+  //               <View className="mt-2 px-1">
+  //                 <Text className="font-medium text-base" numberOfLines={1}>
+  //                   {product.name}
+  //                 </Text>
+  //                 <Text className="text-gray-500 text-xs" numberOfLines={1}>
+  //                   {product.description || "High-quality lighting product"}
+  //                 </Text>
+
+  //                 <View className="flex-row items-center mt-1">
+  //                   <Text className="font-bold text-base">₹{product.price}</Text>
+  //                   <Text className="ml-2 text-gray-400 line-through text-xs">
+  //                     ₹{product.originalPrice}
+  //                   </Text>
+  //                 </View>
+
+  //                 <View className="flex-row items-center justify-between mt-1">
+  //                   <View className="flex-row bg-amber-50 px-2 py-1 rounded-full items-center">
+  //                     <Icon name="star" size={12} color="#F59E0B" />
+  //                     <Text className="ml-1 text-xs font-medium">{product.rating || "4.5"}</Text>
+  //                   </View>
+  //                   <Text className="text-gray-500 text-xs">Stock: {product.stock || "50+"}</Text>
+  //                 </View>
+  //               </View>
+  //             </>
+  //           )}
+  //         </View>
+  //       </TouchableOpacity>
+  //     </Animated.View>
+  //   );
+  // };
 
   const ReviewCard = ({ review }) => (
     <View className="bg-white mr-4 p-4 rounded-xl shadow-sm border border-gray-100" style={{ width: width * 0.75 }}>
@@ -378,7 +521,7 @@ export default function HomeScreen() {
 
       <TouchableOpacity
         className="bg-white py-3 rounded-xl flex-row justify-center items-center"
-      // onPress={() => navigation.navigate("DealOfTheDay")}
+        onPress={() => navigation.navigate("SpecialOffer")}
       >
         <Text className="font-bold text-indigo-600 mr-2">Shop Now</Text>
         <Icon name="arrow-forward" size={16} color="#4F46E5" />
@@ -390,7 +533,7 @@ export default function HomeScreen() {
     <View className="flex-row justify-between mx-4 mb-6 bg-gray-50 p-3 rounded-xl">
       <View className="items-center">
         <Text className="font-bold text-base text-amber-500">{formatNumber(10000)}+</Text>
-        <Text className="text-xs text-gray-500">Products1</Text>
+        <Text className="text-xs text-gray-500">Products</Text>
       </View>
       <View className="h-full w-px bg-gray-200" />
       <View className="items-center">
@@ -405,23 +548,57 @@ export default function HomeScreen() {
     </View>
   );
 
-  const NewsletterSignup = () => (
-    <View className="mx-4 mb-6 bg-gray-50 p-4 rounded-2xl">
-      <Text className="font-bold text-lg mb-2">Stay Updated</Text>
-      <Text className="text-gray-500 text-sm mb-3">Subscribe to our newsletter for exclusive deals and updates</Text>
-
-      <View className="flex-row">
-        <TextInput
-          placeholder="Enter your email"
-          className="flex-1 bg-white border border-gray-200 rounded-l-lg px-3 py-2"
-        />
-        <TouchableOpacity className="bg-amber-500 px-4 rounded-r-lg items-center justify-center">
-          <Text className="text-white font-medium">Subscribe</Text>
+  // Trending section component
+  const TrendingSection = () => (
+    <View className="mb-6">
+      <View className="px-4 flex-row justify-between items-center mb-4">
+        <Text className="font-bold text-lg">Trending Now</Text>
+        <TouchableOpacity>
+          <Text className="text-amber-500 font-medium">View All</Text>
         </TouchableOpacity>
+      </View>
+
+      <View className="px-4 flex-row">
+        <View className="flex-1 mr-2">
+          <TouchableOpacity
+            className="bg-blue-100 rounded-2xl p-3 items-center justify-center mb-2"
+            style={{ height: 120 }}
+            onPress={() => navigation.navigate("CategoryScreen", { categoryName: "Smart Lighting" })}
+          >
+            <Icon name="lightbulb" size={36} color="#3B82F6" />
+            <Text className="font-medium mt-2 text-blue-800">Smart Lighting</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="bg-purple-100 rounded-2xl p-3 items-center justify-center"
+            style={{ height: 80 }}
+            onPress={() => navigation.navigate("CategoryScreen", { categoryName: "Security" })}
+          >
+            <Text className="font-medium text-purple-800">Security Cameras</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-1 ml-2">
+          <TouchableOpacity
+            className="bg-green-100 rounded-2xl p-3 items-center justify-center mb-2"
+            style={{ height: 80 }}
+            onPress={() => navigation.navigate("CategoryScreen", { categoryName: "Energy Saving" })}
+          >
+            <Text className="font-medium text-green-800">Energy Saving</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="bg-amber-100 rounded-2xl p-3 items-center justify-center"
+            style={{ height: 120 }}
+            onPress={() => navigation.navigate("CategoryScreen", { categoryName: "Decorative Lighting" })}
+          >
+            <Icon name="emoji-objects" size={36} color="#F59E0B" />
+            <Text className="font-medium mt-2 text-amber-800">Decorative Lights</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
-
 
   return (
     <SafeAreaView className="flex-1 bg-white pt-12">
@@ -435,7 +612,7 @@ export default function HomeScreen() {
         scrollEventThrottle={16}
       >
         {/* Header with logo and icons */}
-        <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
+        <View className="px-4 pb-2 flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Image
               source={require("../../../src/assets/logopng22.png")}
@@ -445,15 +622,6 @@ export default function HomeScreen() {
           </View>
 
           <View className="flex-row">
-            {/* <TouchableOpacity className="mr-4" onPress={() => navigation.navigate("Wishlist")}>
-              <View className="relative">
-                <Icon name="favorite-border" size={24} color="#333" />
-                <View className="absolute -top-1 -right-1 bg-amber-500 rounded-full w-4 h-4 items-center justify-center">
-                  <Text className="text-white text-xs font-bold">5</Text>
-                </View>
-              </View>
-            </TouchableOpacity> */}
-
             <TouchableOpacity className="mr-4" onPress={() => navigation.navigate("Cart")}>
               <View className="relative">
                 <Icon name="shopping-cart" size={24} color="#333" />
@@ -476,29 +644,29 @@ export default function HomeScreen() {
 
         {/* Welcome message */}
         <View className="px-4 mb-4">
-          {/* <Text className="text-gray-500">Hello there 👋</Text> */}
           <Text className="text-2xl font-bold">Find your perfect light</Text>
+          <Text className="text-gray-500">Brighten your space with our collection</Text>
         </View>
 
         {/* Search Bar */}
-        <View className="px-4 mb-6">
-          <View className="flex-row items-center bg-gray-100 px-4 py-3 rounded-xl">
-            <Icon name="search" size={20} color="#666" />
-            <TextInput
-              placeholder="Search for bulbs, lamps and more..."
-              placeholderTextColor="#999"
-              value={searchText}
-              onSubmitEditing={onSearchSubmit}
-              onChangeText={handleSearch}
-              className="flex-1 ml-2 text-base"
-            />
-            {searchText.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchText("")}>
-                <Icon name="close" size={20} color="#666" />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+          <View className="px-4 mb-6">
+              <View className="flex-row items-center bg-gray-100 px-4 py-3 rounded-xl">
+                <Icon name="search" size={20} color="#666" />
+                <TextInput
+                  placeholder="Search for bulbs, lamps and more..."
+                  placeholderTextColor="#999"
+                  value={searchText}
+                  onSubmitEditing={onSearchSubmit}
+                  onChangeText={handleSearch}
+                  className="flex-1 ml-2 text-base"
+                />
+                {searchText.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchText("")}>
+                    <Icon name="close" size={20} color="#666" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
 
         {/* Banner Carousel */}
         <View className="mb-6">
@@ -526,45 +694,48 @@ export default function HomeScreen() {
         {/* Stats Bar */}
         <StatsBar />
 
-        {/* Categories */}
+        {/* Trending Section (New) */}
+        <TrendingSection />
+
+        {/* Categories Grid */}
         <View className="mb-6">
-          <View className="px-4 flex-row justify-between items-center mb-4">
+          <View className="px-4 mb-4">
             <Text className="font-bold text-lg">Categories</Text>
-            <TouchableOpacity>
-              <Text className="text-amber-500 font-medium">View All</Text>
-            </TouchableOpacity>
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="pl-4"
-            contentContainerStyle={{ paddingRight: 20 }}
-          >
-            {categories.map((category) => (
-              <CategoryItem
-                key={category.id}
-                category={category}
-                isActive={activeCategory === category.id}
-                onPress={() => setActiveCategory(category.id)}
-              />
-            ))}
-          </ScrollView>
+          {loadingCategories ? (
+            <View className="items-center justify-center py-4">
+              <ActivityIndicator size="large" color="#F59E0B" />
+            </View>
+          ) : (
+            <View className="px-4 flex-row flex-wrap">
+              {categories.map((category) => (
+                <CategoryItem
+                  key={category._id}
+                  category={category}
+                  isActive={activeCategory === category._id}
+                  onPress={() => setActiveCategory(category._id)}
+                />
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Deal of the Day */}
         <DealOfTheDay />
 
         {/* Featured Product */}
-        <View className="mb-2">
+        <View className="mb-6">
           <View className="px-4 flex-row justify-between items-center mb-4">
             <Text className="font-bold text-lg">Featured Product</Text>
           </View>
 
           {featuredProduct ? (
             <TouchableOpacity
-              className="mx-4 mb-6 bg-gradient-to-r from-amber-50 to-amber-100 rounded-2xl overflow-hidden"
-              onPress={() => navigation.navigate("ProductDetails", { product: featuredProduct })}
+              className="mx-4 mb-2 bg-gradient-to-r from-amber-50 to-amber-100 rounded-2xl overflow-hidden"
+              onPress={() => {
+                handleNavigateToProduct(featuredProduct._id);
+              }}
             >
               <View className="flex-row">
                 <Image
@@ -576,25 +747,74 @@ export default function HomeScreen() {
                   <View className="bg-amber-500 self-start px-2 py-1 rounded-full mb-2">
                     <Text className="text-white text-xs font-bold">FEATURED</Text>
                   </View>
-                  <Text className="font-bold text-base">{featuredProduct.name}</Text>
-                  <Text className="text-gray-500 text-xs mb-1">{featuredProduct.shortDescription}</Text>
+                  <Text className="font-bold text-base">{truncateText(featuredProduct.name, 15)}</Text>
+                  <Text className="text-gray-500 text-xs mb-1">
+                    {truncateText(featuredProduct.shortDescription || "High-quality lighting solution for your home", 50)}
+                  </Text>
+
                   <View className="flex-row items-center">
                     <Text className="font-bold text-base">₹{featuredProduct.price}</Text>
                     <Text className="ml-2 text-gray-400 line-through text-xs">₹{featuredProduct.originalPrice}</Text>
                   </View>
+
+                  <TouchableOpacity
+                    className="bg-amber-500 mt-2 px-3 py-1 self-start rounded-full"
+                    onPress={() => handleNavigateToProduct(featuredProduct._id)}
+                  >
+                    <Text className="text-white text-xs font-medium">Buy Now</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </TouchableOpacity>
           ) : (
-            <Text className="text-gray-400 text-center mb-4">Loading featured product...</Text>
+            <View className="items-center justify-center">
+              <ActivityIndicator size="large" color="#F59E0B" />
+            </View>
           )}
         </View>
 
+        {/* Hot Deals Section - Redesigned
+        <View className="mb-6">
+          <View className="px-4 flex-row justify-between items-center mb-4">
+            <View className="flex-row items-center">
+              <Icon name="local-fire-department" size={24} color="#F59E0B" />
+              <Text className="font-bold text-lg ml-2">Hot Deals</Text>
+            </View>
+            <TouchableOpacity>
+              <Text className="text-amber-500 font-medium">View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {hotDeals.length > 0 ? (
+            <ScrollView
+              horizontal={false}
+              showsVerticalScrollIndicator={false}
+              className="px-4"
+            >
+              {hotDeals.map((product, index) => (
+                <ProductCard
+                  key={product._id || index}
+                  product={product}
+                  index={index}
+                  navigation={navigation}
+                  isHotDeal={true}
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <View className="items-center justify-center py-4">
+              <ActivityIndicator size="large" color="#F59E0B" />
+            </View>
+          )}
+        </View> */}
 
         {/* New Arrivals */}
         <View className="mb-6">
           <View className="px-4 flex-row justify-between items-center mb-4">
-            <Text className="font-bold text-lg">New Arrivals</Text>
+            <View className="flex-row items-center">
+              <Icon name="fiber-new" size={24} color="#10B981" />
+              <Text className="font-bold text-lg ml-2">New Arrivals</Text>
+            </View>
             <TouchableOpacity>
               <Text className="text-amber-500 font-medium">View All</Text>
             </TouchableOpacity>
@@ -607,9 +827,9 @@ export default function HomeScreen() {
             contentContainerStyle={{ paddingRight: 20 }}
           >
             {newArrivals.map((product, index) => (
-              <View key={product.id} style={{ width: width * 0.4 }} className="mr-4">
+              <View key={product.id || index} style={{ width: width * 0.4 }} className="mr-4">
                 <TouchableOpacity
-                  onPress={() => navigation.navigate("ProductDetails", { product })}
+                  onPress={() => handleNavigateToProduct(product._id)}
                   className="relative"
                 >
                   <Image
@@ -628,38 +848,33 @@ export default function HomeScreen() {
                     <Text className="font-bold">₹{product.price}</Text>
                     <Text className="ml-2 text-gray-400 line-through text-xs">₹{product.originalPrice}</Text>
                   </View>
+
+                  <View className="mt-1">
+                    <TouchableOpacity
+                      className="bg-gray-100 py-1 rounded-full flex-row justify-center items-center"
+                      onPress={() => {
+                        // Add to cart functionality
+                        // For now, just navigate to product
+                        handleNavigateToProduct(product._id);
+                      }}
+                    >
+                      <Icon name="add-shopping-cart" size={14} color="#333" />
+                      <Text className="text-xs ml-1">Add to Cart</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))}
           </ScrollView>
         </View>
 
-        {/* Hot Deals Section */}
-        <View className="mb-6">
-          <View className="px-4 flex-row justify-between items-center mb-4">
-            <Text className="font-bold text-lg">Hot Deals</Text>
-            <TouchableOpacity>
-              <Text className="text-amber-500 font-medium">View All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="px-4 flex-row flex-wrap justify-between">
-            {products.slice(0, 2).map((product, index) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                index={index}
-                navigation={navigation}
-              />
-            ))}
-          </View>
-        </View>
-
-
         {/* Customer Reviews */}
         <View className="mb-6">
           <View className="px-4 flex-row justify-between items-center mb-4">
-            <Text className="font-bold text-lg">Customer Reviews</Text>
+            <View className="flex-row items-center">
+              <Icon name="rate-review" size={24} color="#8B5CF6" />
+              <Text className="font-bold text-lg ml-2">Customer Reviews</Text>
+            </View>
             <TouchableOpacity>
               <Text className="text-amber-500 font-medium">View All</Text>
             </TouchableOpacity>
@@ -677,13 +892,13 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Newsletter Signup */}
-        {/* <NewsletterSignup /> */}
-
         {/* Recently Viewed */}
         <View className="mb-6">
           <View className="px-4 flex-row justify-between items-center mb-4">
-            <Text className="font-bold text-lg">Recently Viewed</Text>
+            <View className="flex-row items-center">
+              <Icon name="history" size={24} color="#6B7280" />
+              <Text className="font-bold text-lg ml-2">Recently Viewed</Text>
+            </View>
             <TouchableOpacity>
               <Text className="text-amber-500 font-medium">Clear</Text>
             </TouchableOpacity>
@@ -695,10 +910,10 @@ export default function HomeScreen() {
             className="pl-4"
             contentContainerStyle={{ paddingRight: 20 }}
           >
-            {products.slice(0, 3).map((product, index) => (
-              <View key={product.id} style={{ width: width * 0.3 }} className="mr-4">
+            {products.slice(3, 8).map((product, index) => (
+              <View key={product.id || index} style={{ width: width * 0.3 }} className="mr-4">
                 <TouchableOpacity
-                  onPress={() => navigation.navigate("ProductDetails", { product })}
+                  onPress={() => handleNavigateToProduct(product._id)}
                   className="relative"
                 >
                   <Image
@@ -720,7 +935,7 @@ export default function HomeScreen() {
         {/* Final Banner */}
         <View className="px-4 mb-6">
           <TouchableOpacity
-            className="bg-orange-500 p-4 rounded-2xl"
+            className="bg-orange-400 p-4 rounded-2xl"
             onPress={() => navigation.navigate("SpecialOffer")}
           >
             <View className="flex-row items-center justify-between">
@@ -739,10 +954,64 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Bottom spacing */}
-        <View className="h-20" />
-      </Animated.ScrollView>
+        {/* App Features */}
+        <View className="px-4 mb-6">
+          <Text className="font-bold text-lg mb-4">Why Choose Us</Text>
 
+          <View className="flex-row flex-wrap justify-between">
+            <View className="w-1/2 pr-2 mb-4">
+              <View className="bg-blue-50 p-3 rounded-xl flex-row items-center">
+                <View className="bg-blue-100 p-2 rounded-lg">
+                  <Icon name="local-shipping" size={20} color="#3B82F6" />
+                </View>
+                <View className="ml-2">
+                  <Text className="font-medium text-sm">Free Shipping</Text>
+                  <Text className="text-gray-500 text-xs">On orders over ₹500</Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="w-1/2 pl-2 mb-4">
+              <View className="bg-green-50 p-3 rounded-xl flex-row items-center">
+                <View className="bg-green-100 p-2 rounded-lg">
+                  <Icon name="verified" size={20} color="#10B981" />
+                </View>
+                <View className="ml-2">
+                  <Text className="font-medium text-sm">Quality Assured</Text>
+                  <Text className="text-gray-500 text-xs">100% authentic products</Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="w-1/2 pr-2">
+              <View className="bg-purple-50 p-3 rounded-xl flex-row items-center">
+                <View className="bg-purple-100 p-2 rounded-lg">
+                  <Icon name="support-agent" size={20} color="#8B5CF6" />
+                </View>
+                <View className="ml-2">
+                  <Text className="font-medium text-sm">24/7 Support</Text>
+                  <Text className="text-gray-500 text-xs">Dedicated help center</Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="w-1/2 pl-2">
+              <View className="bg-amber-50 p-3 rounded-xl flex-row items-center">
+                <View className="bg-amber-100 p-2 rounded-lg">
+                  <Icon name="repeat" size={20} color="#F59E0B" />
+                </View>
+                <View className="ml-2">
+                  <Text className="font-medium text-sm">Easy Returns</Text>
+                  <Text className="text-gray-500 text-xs">30-day return policy</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Bottom spacing */}
+        <View className="h-6" />
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }

@@ -6,6 +6,7 @@ import AddressSelection from '../screens/cart/AddressSelection';
 import NewAddress from '../screens/cart/NewAddress';
 import AddressScreen from '../screens/account/AddressScreen';
 import PaymentScreen from '../screens/cart/PaymentScreen';
+import OrderConfirmationScreen from '../screens/cart/OrderConfirmationScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +25,7 @@ const CartStack = () => {
       
 
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen name="OrderConfirmation" component={OrderConfirmationScreen} />
     </Stack.Navigator>
   );
 };

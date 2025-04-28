@@ -6,6 +6,7 @@ import { RootStackParamList } from '../../navigations/RootStackParamList';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../redux/slices/authSlice'
 import axiosInstance from '../../utils/axiosInstance';
+import { showMessage } from '../../services/AuthService';
 
 const SplashScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -40,6 +41,7 @@ const SplashScreen = () => {
           }
         } catch (error) {
           console.log('Session check error:', error);
+          showMessage('Session expired. Please log in again.');
           navigation.replace('Welcome');
         }
       };

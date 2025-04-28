@@ -33,8 +33,9 @@ const FillProfile = () => {
         body: JSON.stringify({ name, email }),
         credentials: 'include',
       });
-
+      
       const data = await response.json();
+      console.log("Response data:", data);
 
       if (data.success) {
         const res = dispatch(login({
